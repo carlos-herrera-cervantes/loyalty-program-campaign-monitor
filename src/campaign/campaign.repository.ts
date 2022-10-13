@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model } from 'mongoose';
+import { FilterQuery, Model, ProjectionType } from 'mongoose';
 import { Campaign, CampaignDocument } from './schemas/campaign.schema';
 import { UpdateCampaignDTO } from './dto/update.dto';
 
@@ -11,6 +11,13 @@ export class CampaignRepository {
 
   async count(filter?: FilterQuery<Campaign>): Promise<number> {
     return this.campaignRepository.count(filter);
+  }
+
+  async getAll(
+    filter?: FilterQuery<Campaign>,
+    projection?: ProjectionType<CampaignDocument>
+  ): Promise<Campaign[]> {
+    return this.campaignRepository.find(filter, projection);
   }
 
   async update(
