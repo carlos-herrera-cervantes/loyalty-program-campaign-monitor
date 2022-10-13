@@ -1,22 +1,26 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
-import { Campaign } from './entities/campaign.entity';
+import { InjectModel } from '@nestjs/mongoose';
+import { FilterQuery, Model } from 'mongoose';
+import { Campaign, CampaignDocument } from './schemas/campaign.schema';
 import { UpdateCampaignDTO } from './dto/update.dto';
 
 @Injectable()
 export class CampaignRepository {
-  @InjectRepository(Campaign)
-  private readonly campaignRepository: Repository<Campaign>;
+  @InjectModel(Campaign.name)
+  private readonly campaignRepository: Model<CampaignDocument>;
 
-  async count(filter?: FindManyOptions<Campaign>): Promise<number> {
+  async count(filter?: FilterQuery<Campaign>): Promise<number> {
     return this.campaignRepository.count(filter);
   }
 
   async update(
-    filter: FindOptionsWhere<Campaign>,
+    filter: FilterQuery<Campaign>,
     partialCampaign: UpdateCampaignDTO,
   ): Promise<void> {
-    await this.campaignRepository.update(filter, partialCampaign);
+    await this.campaignRepository.findOneAndUpdate(
+      filter,
+      { $set: partialCampaign },
+      { new: true },
+    );
   }
 }
