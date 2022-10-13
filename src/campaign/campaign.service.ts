@@ -1,6 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { Between } from 'typeorm';
 import { CampaignRepository } from './campaign.repository';
 
 @Injectable()
@@ -11,7 +10,7 @@ export class CampaignService {
   private readonly campaignRepository: CampaignRepository;
 
   @Cron('0 0 * * *')
-  async disable_campaigns(): Promise<void> {
+  async disableCampaigns(): Promise<void> {
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
@@ -19,12 +18,22 @@ export class CampaignService {
     endOfDay.setHours(23, 59, 59, 999);
 
     const filter = {
-      endDate: Between(startOfDay, endOfDay),
+      end_date: { $gte: startOfDay, $lte: endOfDay },
     };
+
+    const campaigns = await this.campaignRepository
+      .count(filter)
+      .catch(this.logger.error);
+
+    if (!campaigns) {
+      this.logger.log('No campaigns to disable');
+      return;
+    }
+
     const newValues = { active: false };
 
     await this.campaignRepository
       .update(filter, newValues)
-      .catch((err) => this.logger.error(err));
+      .catch(this.logger.error);
   }
 }
