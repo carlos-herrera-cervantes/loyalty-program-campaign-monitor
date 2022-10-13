@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import { CustomerService } from '../customer/customer.service';
 import { CampaignRepository } from './campaign.repository';
 
 @Injectable()
@@ -8,6 +9,9 @@ export class CampaignService {
 
   @Inject(CampaignRepository)
   private readonly campaignRepository: CampaignRepository;
+
+  @Inject(CustomerService)
+  private readonly customerService: CustomerService;
 
   @Cron('0 0 * * *')
   async disableCampaigns(): Promise<void> {
@@ -19,21 +23,24 @@ export class CampaignService {
 
     const filter = {
       end_date: { $gte: startOfDay, $lte: endOfDay },
+      active: true,
     };
-
     const campaigns = await this.campaignRepository
-      .count(filter)
-      .catch(this.logger.error);
+      .getAll(filter, { bucket_id: true })
+      .catch(() => []);
 
-    if (!campaigns) {
+    if (!campaigns.length) {
       this.logger.log('No campaigns to disable');
       return;
     }
 
-    const newValues = { active: false };
-
     await this.campaignRepository
-      .update(filter, newValues)
+      .update(filter, { active: false })
+      .catch(this.logger.error);
+
+    const bucketIds = campaigns.map(campaign => campaign.bucket_id);
+    await this.customerService
+      .expireCustomerPoints(bucketIds)
       .catch(this.logger.error);
   }
 }
