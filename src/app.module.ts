@@ -4,12 +4,13 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CampaignModule } from './campaign/campaign.module';
 import { CustomerModule } from './customer/customer.module';
+import { MongoConfig } from './config/mongo.config';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
-    MongooseModule.forRoot(process.env.MONGO_DB_URI),
+    MongooseModule.forRoot(MongoConfig.Db.Loyalty),
     CustomerModule,
     CampaignModule,
   ],
