@@ -1,3 +1,3 @@
-export class UpdateCampaignDTO {
+export class UpdateCampaign {
   active: boolean;
 }

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model, ProjectionType } from 'mongoose';
 import { Campaign, CampaignDocument } from './schemas/campaign.schema';
-import { UpdateCampaignDTO } from './dto/update.dto';
+import { UpdateCampaign } from './dto/update.dto';
 
 @Injectable()
 export class CampaignRepository {
@@ -22,7 +22,7 @@ export class CampaignRepository {
 
   async update(
     filter: FilterQuery<Campaign>,
-    partialCampaign: UpdateCampaignDTO,
+    partialCampaign: UpdateCampaign,
   ): Promise<void> {
     await this.campaignRepository.findOneAndUpdate(
       filter,
